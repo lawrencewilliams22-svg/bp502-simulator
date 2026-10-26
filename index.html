@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blueprint502 Career Profile Simulator</title>
+    <style>
+      @media print {
+        /* Browsers drop background colors when printing by default; keep the brand colors. */
+        *, *::before, *::after {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        @page { size: letter; margin: 0.4in; }
+        html, body { background: #FBEAE4 !important; }
+        #root > div { min-height: 0 !important; }
+        .no-print { display: none !important; }
+        .keep-together { break-inside: avoid; page-break-inside: avoid; }
+      }
+    </style>
   </head>
   <body style="margin:0">
     <div id="root"></div>
