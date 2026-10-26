@@ -218,7 +218,7 @@ function Section({ title, children }) {
 
 function ProfileBlock({ label, color = NAVY, children }) {
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div className="keep-together" style={{ marginBottom: 14 }}>
       <div style={{
         background: color, color: "#fff", fontFamily: SANS, fontWeight: 800,
         fontSize: 12.5, letterSpacing: "0.08em", textTransform: "uppercase",
@@ -403,14 +403,23 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
           document.body.appendChild(s);
         });
       }
+      // html2canvas captures relative to the current scroll position, so a
+      // scrolled-down page clips the top of the profile. Capture from the top.
+      const el = resultsRef.current;
+      const prevScroll = window.scrollY;
+      window.scrollTo(0, 0);
       await window.html2pdf().set({
         margin: 0.4,
         filename: `${(name.trim() || "My").replace(/[^a-z0-9]/gi, "_")}_Blueprint_Profile.pdf`,
         image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FBEAE4" },
+        html2canvas: {
+          scale: 2, useCORS: true, backgroundColor: SALMON_BG,
+          scrollX: 0, scrollY: 0, windowWidth: el.scrollWidth,
+        },
         jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css"] },
-      }).from(resultsRef.current).save();
+        pagebreak: { mode: ["css", "legacy"], avoid: ".keep-together" },
+      }).from(el).save();
+      window.scrollTo(0, prevScroll);
     } catch (e) {
       console.error("PDF download unavailable here — opening print dialog instead.", e);
       window.print();
@@ -863,6 +872,7 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
   if (nav.view === "results" && profile && !loading) {
     body = (
       <div ref={resultsRef}>
+        <div className="keep-together">
         <div style={{
           background: NAVY, borderRadius: "12px 12px 0 0", padding: "20px 18px",
           borderBottom: `4px solid ${RED}`,
@@ -883,6 +893,7 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
           borderRadius: "0 0 12px 12px", padding: "16px", marginBottom: 18,
           fontSize: 15, lineHeight: 1.6, color: INK,
         }}>{profile.summary}</div>
+        </div>
 
         <ProfileBlock label="Your 5 Strengths" color={RED}>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
@@ -929,7 +940,7 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
           ))}
         </ProfileBlock>
 
-        <div data-html2canvas-ignore="true">
+        <div data-html2canvas-ignore="true" className="no-print">
           <button onClick={downloadPDF} style={{ ...bigBtn(true, NAVY), marginTop: 18 }}>
             DOWNLOAD MY PROFILE (PDF)
           </button>
