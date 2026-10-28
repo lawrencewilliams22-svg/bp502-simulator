@@ -394,6 +394,7 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
   // Pages, etc.). Inside the Claude artifact preview, sandbox rules block file
   // downloads, so we fall back to the print dialog (Save as PDF) automatically.
   const downloadPDF = async () => {
+    let prevScroll;
     try {
       if (!window.html2pdf) {
         await new Promise((resolve, reject) => {
@@ -406,7 +407,7 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
       // html2canvas captures relative to the current scroll position, so a
       // scrolled-down page clips the top of the profile. Capture from the top.
       const el = resultsRef.current;
-      const prevScroll = window.scrollY;
+      prevScroll = window.scrollY;
       window.scrollTo(0, 0);
       await window.html2pdf().set({
         margin: 0.4,
@@ -414,15 +415,16 @@ Respond with ONLY a valid JSON object, no markdown, no backticks, in exactly thi
         image: { type: "jpeg", quality: 0.95 },
         html2canvas: {
           scale: 2, useCORS: true, backgroundColor: SALMON_BG,
-          scrollX: 0, scrollY: 0, windowWidth: el.scrollWidth,
+          scrollX: 0, scrollY: 0,
         },
         jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ".keep-together" },
       }).from(el).save();
-      window.scrollTo(0, prevScroll);
     } catch (e) {
       console.error("PDF download unavailable here — opening print dialog instead.", e);
       window.print();
+    } finally {
+      if (prevScroll !== undefined) window.scrollTo(0, prevScroll);
     }
   };
 
